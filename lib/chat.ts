@@ -51,6 +51,10 @@ export function parseStreamLine(line: string): string | null {
 
     try {
       const data = JSON.parse(jsonStr);
+      // Skip "complete" events — they carry the full text which would duplicate
+      if (data && typeof data === "object" && (data as Record<string, unknown>).type === "complete") {
+        return null;
+      }
       return extractTextFromData(data);
     } catch {
       return null;
@@ -107,9 +111,9 @@ export async function handleStreamResponse(
     buffer = lines.pop() || "";
 
     for (const line of lines) {
-      const content = parseStreamLine(line);
-      if (content) {
-        botContent = content;
+      const chunk = parseStreamLine(line);
+      if (chunk) {
+        botContent += chunk;
         onUpdate(botContent);
       }
     }

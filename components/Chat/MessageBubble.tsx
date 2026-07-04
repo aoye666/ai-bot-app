@@ -1,5 +1,5 @@
 "use client";
-import { FileText, Image as ImageIcon, Paperclip, Sparkles } from "lucide-react";
+import { FileText, Image as ImageIcon, Paperclip } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { Message } from "@/types";
 
@@ -25,10 +25,11 @@ export function MessageBubble({ message }: MessageBubbleProps) {
     >
       {/* Avatar - bot only */}
       {!isUser && (
-        <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: 'var(--user-bubble)' }}>
-          <Sparkles className="w-4 h-4 text-white" />
-        </div>
+        <img 
+          src="/logo.jpg" 
+          alt="AI" 
+          className="w-8 h-8 rounded-xl object-cover flex-shrink-0"
+        />
       )}
 
       {/* Bubble */}

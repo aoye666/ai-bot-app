@@ -43,3 +43,4 @@ next-env.d.ts
 # trae (IDE config)
 .trae/
 .trae-cn/
+.qoder/

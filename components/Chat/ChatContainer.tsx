@@ -28,10 +28,11 @@ export function ChatContainer() {
             ))}
             {isLoading && (
               <div className="flex items-start gap-3 animate-fade-in">
-                <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: 'var(--user-bubble)' }}>
-                  <Sparkles className="w-4 h-4 text-white" />
-                </div>
+                <img 
+                  src="/logo.jpg" 
+                  alt="AI" 
+                  className="w-8 h-8 rounded-xl object-cover flex-shrink-0"
+                />
                 <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-bg-elevated border border-border-subtle">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-accent" style={{ animation: 'pulse-dot 1.4s infinite' }} />
