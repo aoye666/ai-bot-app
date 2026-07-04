@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const API_KEY = process.env.ASTRBOT_API_KEY;
+const API_KEY = process.env.ASTRBOT_API_KEY || "";
 const BASE_URL = process.env.ASTRBOT_BASE_URL || "http://localhost:6185/api/v1";
 
 export async function POST(request: NextRequest) {
