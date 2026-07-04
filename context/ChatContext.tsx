@@ -22,6 +22,14 @@ interface ChatContextType {
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
+function safeSetItem(key: string, value: string) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // quota exceeded or storage unavailable
+  }
+}
+
 export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [currentSession, setCurrentSessionState] = useState<string | null>(null);
@@ -40,7 +48,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     const savedCurrentSession = localStorage.getItem("chat_current_session");
     
     if (savedSessions) {
-      setSessions(JSON.parse(savedSessions));
+      try {
+        setSessions(JSON.parse(savedSessions));
+      } catch {
+        setSessions([]);
+      }
     }
     if (savedCurrentSession) {
       setCurrentSessionState(savedCurrentSession);
@@ -48,7 +60,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       // 加载当前会话的消息
       const savedMessages = localStorage.getItem(`chat_messages_${savedCurrentSession}`);
       if (savedMessages) {
-        setMessages(JSON.parse(savedMessages));
+        try {
+          setMessages(JSON.parse(savedMessages));
+        } catch {
+          setMessages([]);
+        }
       }
     }
     setIsMounted(true);
@@ -61,14 +77,21 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   // 加载会话消息
   const loadSessionMessages = useCallback((sessionId: string) => {
     const saved = localStorage.getItem(`chat_messages_${sessionId}`);
-    const loadedMessages = saved ? JSON.parse(saved) : [];
+    let loadedMessages: Message[] = [];
+    if (saved) {
+      try {
+        loadedMessages = JSON.parse(saved);
+      } catch {
+        loadedMessages = [];
+      }
+    }
     setMessages(loadedMessages);
   }, []);
 
   // 切换会话
   const setCurrentSession = useCallback((sessionId: string) => {
     setCurrentSessionState(sessionId);
-    localStorage.setItem("chat_current_session", sessionId);
+    safeSetItem("chat_current_session", sessionId);
     loadSessionMessages(sessionId);
   }, [loadSessionMessages]);
 
@@ -83,7 +106,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     setSessions((prev) => [newSession, ...prev]);
     setCurrentSessionState(newSession.id);
     currentSessionRef.current = newSession.id;
-    localStorage.setItem("chat_current_session", newSession.id);
+    safeSetItem("chat_current_session", newSession.id);
     setMessages([]);
     return newSession.id;
   }, []);
@@ -94,7 +117,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       const newMessages = [...prev, message];
       const sessionId = currentSessionRef.current;
       if (sessionId) {
-        localStorage.setItem(`chat_messages_${sessionId}`, JSON.stringify(newMessages));
+        safeSetItem(`chat_messages_${sessionId}`, JSON.stringify(newMessages));
       }
       return newMessages;
     });
@@ -148,7 +171,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         };
         setSessions((prev) => [newSession, ...prev]);
         setCurrentSessionState(newSession.id);
-        localStorage.setItem("chat_current_session", newSession.id);
+        safeSetItem("chat_current_session", newSession.id);
         currentSessionRef.current = newSession.id;
         activeSessionId = newSession.id;
         isNewSession = true;
@@ -165,11 +188,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       // 如果是新会话，先清空消息再添加
       if (isNewSession) {
         setMessages([userMessage]);
-        localStorage.setItem(`chat_messages_${activeSessionId}`, JSON.stringify([userMessage]));
+        safeSetItem(`chat_messages_${activeSessionId}`, JSON.stringify([userMessage]));
       } else {
         setMessages((prev) => {
           const newMessages = [...prev, userMessage];
-          localStorage.setItem(`chat_messages_${activeSessionId}`, JSON.stringify(newMessages));
+          safeSetItem(`chat_messages_${activeSessionId}`, JSON.stringify(newMessages));
           return newMessages;
         });
       }
@@ -214,7 +237,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         // 添加机器人消息占位
         setMessages((prev) => {
           const newMessages = [...prev, botMessage];
-          localStorage.setItem(`chat_messages_${activeSessionId}`, JSON.stringify(newMessages));
+          safeSetItem(`chat_messages_${activeSessionId}`, JSON.stringify(newMessages));
           return newMessages;
         });
 
@@ -226,7 +249,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
                 ? { ...msg, content: newContent }
                 : msg
             );
-            localStorage.setItem(`chat_messages_${activeSessionId}`, JSON.stringify(newMessages));
+            safeSetItem(`chat_messages_${activeSessionId}`, JSON.stringify(newMessages));
             return newMessages;
           });
         });
@@ -242,7 +265,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
                 }
               : s
           );
-          localStorage.setItem("chat_sessions", JSON.stringify(updated));
+          safeSetItem("chat_sessions", JSON.stringify(updated));
           return updated;
         });
 
@@ -256,10 +279,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     [clearUploads]
   );
 
-  // 保存会话列表
+  // 保存会话列表（只在客户端挂载后保存）
   useEffect(() => {
-    localStorage.setItem("chat_sessions", JSON.stringify(sessions));
-  }, [sessions]);
+    if (isMounted) {
+      safeSetItem("chat_sessions", JSON.stringify(sessions));
+    }
+  }, [sessions, isMounted]);
 
   return (
     <ChatContext.Provider

@@ -1,7 +1,7 @@
-import type { Attachment } from "@/types";
+import type { Attachment, MessageSegment } from "@/types";
 
 export interface ChatPayload {
-  message: string | any[];
+  message: string | MessageSegment[];
   username: string;
   session_id: string | null;
   enable_streaming: boolean;
@@ -12,7 +12,7 @@ export function buildMessagePayload(
   attachments: Attachment[] | undefined,
   sessionId: string | null
 ): ChatPayload {
-  const messageSegments: any[] = [];
+  const messageSegments: MessageSegment[] = [];
 
   if (content.trim()) {
     messageSegments.push({ type: "plain", text: content });
