@@ -3,9 +3,5 @@
   "devCommand": "next dev",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "outputDirectory": ".next",
-  "env": {
-    "ASTRBOT_API_URL": "@astrbot_api_url",
-    "ASTRBOT_API_KEY": "@astrbot_api_key"
-  }
+  "outputDirectory": ".next"
 }
