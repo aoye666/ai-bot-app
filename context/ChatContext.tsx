@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useState, useCallback, useEffect, useRef } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, useRef, useMemo } from "react";
 import type { Message, Session, Attachment } from "@/types";
 import { buildMessagePayload, handleStreamResponse } from "@/lib/chat";
 
@@ -286,25 +286,28 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     }
   }, [sessions, isMounted]);
 
+  const value = useMemo(
+    () => ({
+      messages,
+      sessions,
+      currentSession,
+      isLoading,
+      isMounted,
+      uploads,
+      inputValue,
+      addMessage,
+      sendMessage,
+      uploadFile,
+      clearUploads,
+      setCurrentSession,
+      createNewSession,
+      setInputValue,
+    }),
+    [messages, sessions, currentSession, isLoading, isMounted, uploads, inputValue, addMessage, sendMessage, uploadFile, clearUploads, setCurrentSession, createNewSession, setInputValue]
+  );
+
   return (
-    <ChatContext.Provider
-      value={{
-        messages,
-        sessions,
-        currentSession,
-        isLoading,
-        isMounted,
-        uploads,
-        inputValue,
-        addMessage,
-        sendMessage,
-        uploadFile,
-        clearUploads,
-        setCurrentSession,
-        createNewSession,
-        setInputValue,
-      }}
-    >
+    <ChatContext.Provider value={value}>
       {children}
     </ChatContext.Provider>
   );
